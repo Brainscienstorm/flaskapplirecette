@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>{{ recipe['plat_' + session['lang']] }}</h1>
+    <p><strong>{{ "Type" if session['lang'] == 'en' else "Type" }}:</strong> {{ recipe.types }}</p>
+    <p><strong>{{ "Category" if session['lang'] == 'en' else "Catégorie" }}:</strong> {{ recipe.categories }}</p>
+    
+    <h2>{{ "Ingredients" if session['lang'] == 'en' else "Ingrédients" }}</h2>
+    <ul>
+        {% for ingredient in ingredients %}
+            <li>{{ ingredient.ingredient }}</li>
+        {% endfor %}
+    </ul>
+    
+    <h2>{{ "Instructions" if session['lang'] == 'en' else "Instructions" }}</h2>
+    <ol>
+        {% for instruction in instructions %}
+            <li>{{ instruction.instruction }}</li>
+        {% endfor %}
+    </ol>
+    
+    <div class="buttons">
+        <a href="{{ url_for('surprise_me') }}">
+            {{ "Other Dish" if session['lang'] == 'en' else "Autre plat" }}
+        </a>
+        <a href="{{ url_for('index') }}" class="back-button">
+            {{ "Back to Main Menu" if session['lang'] == 'en' else "Retour au menu principal" }}
+        </a>
+    </div>
+{% endblock %}
+

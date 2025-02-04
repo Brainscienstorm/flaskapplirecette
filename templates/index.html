@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {{ "CuisineApp" }}
+{% endblock %}
+
+{% block content %}
+  <div class="row text-center">
+      <!-- Surprise Me Box -->
+      <div class="col-md-4 mb-3">
+          <div class="functionality-box d-flex align-items-center justify-content-center rounded shadow" style="background-color: #FFB07C; height: 200px;">
+              <a href="{{ url_for('surprise_me') }}" class="stretched-link text-white text-decoration-none">
+                  <h3>{{ "Surprise Me" if session['lang'] == 'en' else "Me surprendre" }}</h3>
+              </a>
+          </div>
+      </div>
+      <!-- Guided Choice Box -->
+      <div class="col-md-4 mb-3">
+          <div class="functionality-box d-flex align-items-center justify-content-center rounded shadow" style="background-color: #F6AD9E; height: 200px;">
+              <a href="{{ url_for('guided_choice') }}" class="stretched-link text-white text-decoration-none">
+                  <h3>{{ "Guided Choice" if session['lang'] == 'en' else "Choix guidé" }}</h3>
+              </a>
+          </div>
+      </div>
+      <!-- Search by Ingredients Box -->
+      <div class="col-md-4 mb-3">
+          <div class="functionality-box d-flex align-items-center justify-content-center rounded shadow" style="background-color: #F7C59F; height: 200px;">
+              <a href="{{ url_for('ingredient_search') }}" class="stretched-link text-dark text-decoration-none">
+                  <h3>{{ "Search by Ingredients" if session['lang'] == 'en' else "Recherche par ingrédients" }}</h3>
+              </a>
+          </div>
+      </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {{ "Search by Ingredients" if session['lang'] == 'en' else "Recherche par ingrédients" }}
+{% endblock %}
+
+{% block content %}
+  <h1>{{ "Search by Ingredients" if session['lang'] == 'en' else "Recherche par ingrédients" }}</h1>
+  
+  <!-- Search Form -->
+  <form method="POST">
+      <label for="ingredients">
+          {{ "Enter ingredients (comma separated):" if session['lang'] == 'en' else "Entrez les ingrédients (séparés par une virgule) :" }}
+      </label>
+      <input type="text" name="ingredients" id="ingredients" placeholder="{{ "e.g., tomato, cheese" if session['lang'] == 'en' else "ex. : tomate, fromage" }}">
+      <input type="submit" value="{{ 'Search' if session['lang'] == 'en' else 'Rechercher' }}">
+  </form>
+  
+  {% if search_terms is defined and search_terms %}
+    <!-- Display current suggestion details -->
+    <h2>
+      {{ "Suggestion" if session['lang'] == 'en' else "Suggestion" }} 
+      ({{ current_index + 1 }} / {{ total }})
+    </h2>
+    <h3>{{ top_recipe['plat_' + session['lang']] }}</h3>
+    <p>
+      <strong>{{ "Type" if session['lang'] == 'en' else "Type" }}:</strong> {{ top_recipe.types }}<br>
+      <strong>{{ "Category" if session['lang'] == 'en' else "Catégorie" }}:</strong> {{ top_recipe.categories }}
+    </p>
+    
+    <h4>{{ "Ingredients" if session['lang'] == 'en' else "Ingrédients" }}</h4>
+    <ul>
+      {% for ing in ingredients_details %}
+        <li>{{ ing.ingredient }}</li>
+      {% endfor %}
+    </ul>
+    
+    <h4>{{ "Instructions" if session['lang'] == 'en' else "Instructions" }}</h4>
+    <ol>
+      {% for step in instructions %}
+        <li>{{ step.instruction }}</li>
+      {% endfor %}
+    </ol>
+    
+    <!-- Navigation Buttons -->
+    <div class="navigation">
+      {% if current_index > 0 %}
+        <a href="{{ url_for('ingredient_search', action='prev') }}">
+          {{ "Previous" if session['lang'] == 'en' else "Précédent" }}
+        </a>
+      {% endif %}
+      {% if current_index < total - 1 %}
+        <a href="{{ url_for('ingredient_search', action='next') }}">
+          {{ "Next" if session['lang'] == 'en' else "Suivant" }}
+        </a>
+      {% endif %}
+    </div>
+    
+  {% endif %}
+  
+  <div class="back-button">
+    <a href="{{ url_for('index') }}">
+      {{ "Back to Main Menu" if session['lang'] == 'en' else "Retour au menu principal" }}
+    </a>
+  </div>
+  
+  <!-- Include jQuery and jQuery UI from CDN -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+  
+  <script>
+    $(function() {
+      // Function to split the input value by commas and whitespace
+      function split(val) {
+        return val.split(/,\s*/);
+      }
+      // Function to get the last term (i.e. after the last comma)
+      function extractLast(term) {
+        return split(term).pop();
+      }
+    
+      $("#ingredients").autocomplete({
+        source: function(request, response) {
+          $.ajax({
+            url: "{{ url_for('ingredient_suggestions') }}",
+            dataType: "json",
+            data: {
+              // Use only the last token for suggestions
+              term: extractLast(request.term)
+            },
+            success: function(data) {
+              response(data);
+            }
+          });
+        },
+        minLength: 2,  // Start suggesting after 2 characters of the current term
+        focus: function() {
+          // Prevent value inserted on focus
+          return false;
+        },
+        select: function(event, ui) {
+          var terms = split(this.value);
+          // Remove the current (incomplete) term
+          terms.pop();
+          // Add the selected ingredient
+          terms.push(ui.item.value);
+          // Add placeholder (empty string) to add a comma and space at the end
+          terms.push("");
+          this.value = terms.join(", ");
+          return false;
+        }
+      });
+    });
+    </script>
+  
+{% endblock %}
