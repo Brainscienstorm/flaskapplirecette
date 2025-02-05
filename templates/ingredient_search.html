@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {{ "Search by Ingredients" if session['lang'] == 'en' else "Recherche par ingrédients" }}
+  {{ "Your Ingredients, Our Match" if session['lang'] == 'en' else "Vos Ingrédients, Nos Recettes" }}
 {% endblock %}
 
 {% block content %}
-  <h1>{{ "Search by Ingredients" if session['lang'] == 'en' else "Recherche par ingrédients" }}</h1>
+  <!-- Search Title with a new color -->
+  <h1 style="color: #FF6347;">{{ "Your Ingredients, Our Match" if session['lang'] == 'en' else "Vos Ingrédients, Nos Recettes" }}</h1>
   
   <!-- Search Form -->
   <form method="POST">

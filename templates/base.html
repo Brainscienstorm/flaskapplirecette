@@ -6,34 +6,62 @@
     <!-- Include Bootstrap CSS from CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        /* Define Color Variables */
+        :root {
+            --primary-color: #D6A88B; /* Beige-like color */
+            --secondary-color: #F5F5DC; /* Lighter Beige */
+            --text-color: #333; /* Dark text for contrast */
+        }
+
         /* Global styling */
         body {
-            background-color: #f5f5dc; /* Beige background */
+            background-color: var(--secondary-color); /* Beige background */
         }
+
         .flag {
             width: 32px;
             height: 32px;
             cursor: pointer;
             margin: 0 5px;
         }
+
         .base-container {
             margin-top: 40px;
         }
+
         .main-header {
             text-align: center;
             margin-bottom: 20px;
         }
+
         .main-header img {
             max-height: 80px;
         }
+
         .main-header h1 {
             margin-top: 10px;
             font-size: 2.5rem;
             font-weight: bold;
         }
+
+        /* Title for Functionality (larger, softer color) */
+        .functionality-title {
+            font-size: 2.5rem; /* Bigger than the dish title */
+            color: var(--primary-color); /* A color that blends with beige */
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        /* Title for Dish (slightly smaller) */
+        .dish-title {
+            font-size: 2rem; /* Slightly smaller than the functionality title */
+            color: var(--text-color); /* Darker for good contrast */
+            margin-bottom: 10px;
+        }
+
         /* Ensure each functionality box is positioned relative so the stretched-link works properly */
         .functionality-box {
-            position: relative;  /* Add this line */
+            position: relative;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -42,6 +70,7 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             transition: transform 0.2s;
         }
+
         .functionality-box:hover {
             transform: scale(1.02);
         }
@@ -51,7 +80,6 @@
     <div class="container base-container">
         <!-- Main Header: Logo & App Name -->
         <div class="main-header">
-            <!-- If you don't have a logo yet, a placeholder image will be used -->
             <img src="{{ url_for('static', filename='images/logo.png') }}" alt="CuisineApp Logo" class="img-fluid" onerror="this.onerror=null;this.src='https://via.placeholder.com/150';">
             <h1>CuisineApp</h1>
         </div>

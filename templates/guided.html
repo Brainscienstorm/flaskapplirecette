@@ -1,93 +1,89 @@
 {% extends "base.html" %}
 
 {% block title %}
-  {{ "Guided Choice" if session['lang'] == 'en' else "Choix guidé" }}
+  {{ "Your Criteria, Our Suggestion" if session['lang'] == 'en' else "Vos Critères, Notre Suggestion" }}
 {% endblock %}
 
 {% block content %}
-  <h1>{{ "Guided Choice" if session['lang'] == 'en' else "Choix guidé" }}</h1>
+    <!-- Functionality Title -->
+    <h1 class="functionality-title">{{ "Your Criteria, Our Suggestion" if session['lang'] == 'en' else "Vos Critères, Notre Suggestion" }}</h1>
+    
+    <!-- Always display the selection form -->
+    <form method="POST">
+        <label for="category">
+            {{ "Category" if session['lang'] == 'en' else "Catégorie" }}:
+            <select name="category" id="category">
+                {% for cat in categories %}
+                    <option value="{{ cat.category }}"
+                        {% if selected_category is defined and selected_category == cat.category %}selected{% endif %}>
+                        {{ cat.category }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
 
-  <!-- Always display the selection form -->
-  <form method="POST">
-      <label for="category">
-          {{ "Category" if session['lang'] == 'en' else "Catégorie" }}:
-          <select name="category" id="category">
-              {% for cat in categories %}
-                  <option value="{{ cat.category }}"
-                      {% if selected_category is defined and selected_category == cat.category %}selected{% endif %}>
-                      {{ cat.category }}
-                  </option>
-              {% endfor %}
-          </select>
-      </label>
+        <label for="type">
+            {{ "Type" if session['lang'] == 'en' else "Type" }}:
+            <select name="type" id="type">
+                {% for t in types %}
+                    <option value="{{ t.type }}"
+                        {% if selected_type is defined and selected_type == t.type %}selected{% endif %}>
+                        {{ t.type }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
 
-      <label for="type">
-          {{ "Type" if session['lang'] == 'en' else "Type" }}:
-          <select name="type" id="type">
-              {% for t in types %}
-                  <option value="{{ t.type }}"
-                      {% if selected_type is defined and selected_type == t.type %}selected{% endif %}>
-                      {{ t.type }}
-                  </option>
-              {% endfor %}
-          </select>
-      </label>
+        <input type="submit" value="{{ 'Submit' if session['lang'] == 'en' else 'Soumettre' }}">
+    </form>
 
-      <input type="submit" value="{{ 'Submit' if session['lang'] == 'en' else 'Soumettre' }}">
-  </form>
+    {% if recipe %}
+        <hr>
+        <!-- Display current recipe details -->
+        <h2 class="dish-title">{{ recipe['plat_' + session['lang']] }}</h2>
+        <p>
+            <strong>{{ "Type" if session['lang'] == 'en' else "Type" }}:</strong> {{ recipe.types }}<br>
+            <strong>{{ "Category" if session['lang'] == 'en' else "Catégorie" }}:</strong> {{ recipe.categories }}
+        </p>
 
-  {% if recipe %}
-    <hr>
-    <!-- Display current recipe details -->
-    <h2>{{ recipe['plat_' + session['lang']] }}</h2>
-    <p>
-      <strong>{{ "Type" if session['lang'] == 'en' else "Type" }}:</strong> {{ recipe.types }}<br>
-      <strong>{{ "Category" if session['lang'] == 'en' else "Catégorie" }}:</strong> {{ recipe.categories }}
-    </p>
+        <h3>{{ "Ingredients" if session['lang'] == 'en' else "Ingrédients" }}</h3>
+        <ul>
+            {% for ing in ingredients %}
+                <li>{{ ing.ingredient }}</li>
+            {% endfor %}
+        </ul>
 
-    <h3>{{ "Ingredients" if session['lang'] == 'en' else "Ingrédients" }}</h3>
-    <ul>
-      {% for ing in ingredients %}
-        <li>{{ ing.ingredient }}</li>
-      {% endfor %}
-    </ul>
+        <h3>{{ "Instructions" if session['lang'] == 'en' else "Instructions" }}</h3>
+        <ol>
+            {% for step in instructions %}
+                <li>{{ step.instruction }}</li>
+            {% endfor %}
+        </ol>
 
-    <h3>{{ "Instructions" if session['lang'] == 'en' else "Instructions" }}</h3>
-    <ol>
-      {% for step in instructions %}
-        <li>{{ step.instruction }}</li>
-      {% endfor %}
-    </ol>
+        <!-- Navigation Buttons -->
+        <div class="buttons">
+            {% if current_index > 0 %}
+                <div><a href="{{ url_for('guided_choice', action='prev') }}">
+                    {{ "Previous" if session['lang'] == 'en' else "Précédent" }}
+                </a></div>
+            {% endif %}
 
-    <!-- Navigation Buttons -->
-    <div class="navigation">
-      {% if current_index > 0 %}
-        <a href="{{ url_for('guided_choice', action='prev') }}">
-          {{ "Previous" if session['lang'] == 'en' else "Précédent" }}
-        </a>
-      {% endif %}
-      {% if current_index < total - 1 %}
-        <a href="{{ url_for('guided_choice', action='next') }}">
-          {{ "Next" if session['lang'] == 'en' else "Suivant" }}
-        </a>
-      {% endif %}
-      <p>
-        {{ "Suggestion" if session['lang'] == 'en' else "Suggestion" }} {{ current_index + 1 }}
-        {{ "of" if session['lang'] == 'en' else "sur" }} {{ total }}
-      </p>
-    </div>
+            {% if current_index < total - 1 %}
+                <div><a href="{{ url_for('guided_choice', action='next') }}">
+                    {{ "Next" if session['lang'] == 'en' else "Suivant" }}
+                </a></div>
+            {% endif %}
 
-    <!-- Link to change the selection (reset guided results) -->
-    <div class="change-selection">
-      <a href="{{ url_for('guided_choice', action='reset') }}">
-        {{ "Change selection" if session['lang'] == 'en' else "Changer la sélection" }}
-      </a>
-    </div>
-  {% endif %}
+            <div><a href="{{ url_for('index') }}" class="back-button">
+                {{ "Back to Main Menu" if session['lang'] == 'en' else "Retour au menu principal" }}
+            </a></div>
+        </div>
 
-  <div class="back-button">
-      <a href="{{ url_for('index') }}">
-          {{ "Back to Main Menu" if session['lang'] == 'en' else "Retour au menu principal" }}
-      </a>
-  </div>
+        <!-- Link to change the selection (reset guided results) -->
+        <div class="change-selection">
+            <a href="{{ url_for('guided_choice', action='reset') }}">
+                {{ "Change selection" if session['lang'] == 'en' else "Changer la sélection" }}
+            </a>
+        </div>
+    {% endif %}
 {% endblock %}
