@@ -1,8 +1,5 @@
 {% extends "base.html" %}
 
-
-
-
 {% block content %}
     <!-- Functionality Title -->
     <h1 class="functionality-title">{{ "Your Flavorful Surprise" if session['lang'] == 'en' else "Votre Surprise Savoureuse" }}</h1>
@@ -13,13 +10,16 @@
     <p><strong>{{ "Type" if session['lang'] == 'en' else "Type" }}:</strong> {{ recipe.types }}</p>
     <p><strong>{{ "Category" if session['lang'] == 'en' else "Catégorie" }}:</strong> {{ recipe.categories }}</p>
     
+    <!-- Display the country of origin -->
+    <p><strong>{{ "Country of Origin" if session['lang'] == 'en' else "Pays d'origine" }}:</strong> {{ recipe['country_of_origin'] }}</p>
+    
     <h2>{{ "Ingredients" if session['lang'] == 'en' else "Ingrédients" }}</h2>
     <ul>
-        {% for ingredient in ingredients %}
-            <li>{{ ingredient.ingredient }}</li>
+        {% for ing in ingredients %}
+            <li>{{ ing.ingredient }} - {{ ing.quantity }}</li>
         {% endfor %}
     </ul>
-    
+
     <h2>{{ "Instructions" if session['lang'] == 'en' else "Instructions" }}</h2>
     <ol>
         {% for instruction in instructions %}

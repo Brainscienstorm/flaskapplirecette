@@ -7,30 +7,55 @@
 {% block content %}
     <!-- Functionality Title -->
     <h1 class="functionality-title">{{ "Your Criteria, Our Suggestion" if session['lang'] == 'en' else "Vos Critères, Notre Suggestion" }}</h1>
-    
+
     <!-- Always display the selection form -->
     <form method="POST">
-        <label for="category">
-            {{ "Category" if session['lang'] == 'en' else "Catégorie" }}:
+        <!-- Category -->
+        <label for="category">{{ "Category" if session['lang'] == 'en' else "Catégorie" }}:
             <select name="category" id="category">
+                <option value="any">{{ "Any" if session['lang'] == 'en' else "Tout" }}</option>
                 {% for cat in categories %}
-                    <option value="{{ cat.category }}"
-                        {% if selected_category is defined and selected_category == cat.category %}selected{% endif %}>
+                    <option value="{{ cat.category }}" {% if selected_category == cat.category %}selected{% endif %}>
                         {{ cat.category }}
                     </option>
                 {% endfor %}
             </select>
         </label>
 
-        <label for="type">
-            {{ "Type" if session['lang'] == 'en' else "Type" }}:
+        <!-- Type -->
+        <label for="type">{{ "Type" if session['lang'] == 'en' else "Type" }}:
             <select name="type" id="type">
+                <option value="any">{{ "Any" if session['lang'] == 'en' else "Tout" }}</option>
                 {% for t in types %}
-                    <option value="{{ t.type }}"
-                        {% if selected_type is defined and selected_type == t.type %}selected{% endif %}>
+                    <option value="{{ t.type }}" {% if selected_type == t.type %}selected{% endif %}>
                         {{ t.type }}
                     </option>
                 {% endfor %}
+            </select>
+        </label>
+
+        <!-- Country of Origin -->
+        <label for="country">{{ "Country of Origin" if session['lang'] == 'en' else "Pays d'origine" }}:
+            <select name="country" id="country">
+                <option value="any">{{ "Any" if session['lang'] == 'en' else "Tout" }}</option>
+                {% for c in countries %}
+                    <option value="{{ c.country }}" {% if selected_country == c.country %}selected{% endif %}>
+                        {{ c.country }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <!-- Preparation Time -->
+        <label for="prep_time">{{ "Preparation Time" if session['lang'] == 'en' else "Temps de préparation" }}:
+            <select name="prep_time" id="prep_time">
+                <option value="any">{{ "Any" if session['lang'] == 'en' else "Tout" }}</option>
+                <option value="less_than_1h" {% if selected_prep_time == 'less_than_1h' %}selected{% endif %}>
+                    {{ "Less than 1 hour" if session['lang'] == 'en' else "Moins de 1 heure" }}
+                </option>
+                <option value="more_than_1h" {% if selected_prep_time == 'more_than_1h' %}selected{% endif %}>
+                    {{ "More than 1 hour" if session['lang'] == 'en' else "Plus de 1 heure" }}
+                </option>
             </select>
         </label>
 
@@ -43,13 +68,14 @@
         <h2 class="dish-title">{{ recipe['plat_' + session['lang']] }}</h2>
         <p>
             <strong>{{ "Type" if session['lang'] == 'en' else "Type" }}:</strong> {{ recipe.types }}<br>
-            <strong>{{ "Category" if session['lang'] == 'en' else "Catégorie" }}:</strong> {{ recipe.categories }}
+            <strong>{{ "Category" if session['lang'] == 'en' else "Catégorie" }}:</strong> {{ recipe.categories }}<br>
+            <strong>{{ "Country of Origin" if session['lang'] == 'en' else "Pays d'origine" }}:</strong> {{ recipe.country_of_origin }}
         </p>
-
+        
         <h3>{{ "Ingredients" if session['lang'] == 'en' else "Ingrédients" }}</h3>
         <ul>
             {% for ing in ingredients %}
-                <li>{{ ing.ingredient }}</li>
+                <li>{{ ing.ingredient }} - {{ ing.quantity }}</li>
             {% endfor %}
         </ul>
 
