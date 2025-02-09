@@ -32,19 +32,28 @@
             ({{ current_index + 1 }} / {{ total }})
         </h2>
         <h2>{{ top_recipe['plat_' + session['lang']] }}</h2>
-            <p>
-                <strong>{{ "Type" if session['lang'] == 'en' else "Type" }}:</strong> {{ top_recipe.types }}<br>
-                <strong>{{ "Category" if session['lang'] == 'en' else "Catégorie" }}:</strong> {{ top_recipe.categories }}<br>
-                <strong>{{ "Country of Origin" if session['lang'] == 'en' else "Pays d'origine" }}:</strong> {{ top_recipe.country_of_origin }}
-            </p>
+        <p>
+            <strong>{{ "Type" if session['lang'] == 'en' else "Type" }}:</strong> {{ top_recipe.types }}<br>
+            <strong>{{ "Category" if session['lang'] == 'en' else "Catégorie" }}:</strong> {{ top_recipe.categories }}<br>
+            <strong>{{ "Country of Origin" if session['lang'] == 'en' else "Pays d'origine" }}:</strong> {{ top_recipe.country_of_origin }}
+        </p>
         
+        <!-- Ingredients Loop -->
         <h4>{{ "Ingredients" if session['lang'] == 'en' else "Ingrédients" }}</h4>
         <ul>
             {% for ing in ingredients_details %}
-                <li>{{ ing.ingredient }} - {{ ing.quantity }}</li>
+                <li>
+                    {{ ing.ingredient }} -
+                    {% if ing.quantity %}
+                        {{ ing.quantity }}
+                    {% else %}
+                        {{ "Feel free to adjust to taste" if session['lang'] == 'en' else "À ajuster selon vos préférences" }}
+                    {% endif %}
+                </li>
             {% endfor %}
         </ul>
         
+        <!-- Instructions Loop -->
         <h4>{{ "Instructions" if session['lang'] == 'en' else "Instructions" }}</h4>
         <ol>
             {% for step in instructions %}

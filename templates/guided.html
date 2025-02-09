@@ -75,7 +75,14 @@
         <h3>{{ "Ingredients" if session['lang'] == 'en' else "Ingrédients" }}</h3>
         <ul>
             {% for ing in ingredients %}
-                <li>{{ ing.ingredient }} - {{ ing.quantity }}</li>
+                <li>
+                    {{ ing.ingredient }} -
+                    {% if ing.quantity %}
+                        {{ ing.quantity }}
+                    {% else %}
+                        {{ "Feel free to adjust to taste" if session['lang'] == 'en' else "À ajuster selon vos préférences" }}
+                    {% endif %}
+                </li>
             {% endfor %}
         </ul>
 
