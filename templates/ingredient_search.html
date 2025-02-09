@@ -3,18 +3,24 @@
 {% block content %}
     <h1 class="functionality-title">{{ "Your Ingredients, Our Match" if session['lang'] == 'en' else "Vos Ingrédients, Nos Recettes" }}</h1>
     
-    <!-- Search Form -->
+    <!-- Search Form (single form) -->
     <form method="POST">
+        <!-- Ingredient Field -->
         <label for="ingredients">
             {{ "Enter ingredients (comma separated):" if session['lang'] == 'en' else "Entrez les ingrédients (séparés par une virgule) :" }}
         </label>
         <input type="text" name="ingredients" id="ingredients" placeholder="{{ "e.g., tomato, cheese" if session['lang'] == 'en' else "ex. : tomate, fromage" }}">
-        
-        
-        
-        
-        
-        
+
+        <!-- Type Dropdown -->
+        <label for="type">{{ "Type" if session['lang'] == 'en' else "Type" }}:</label>
+        <select name="type" id="type">
+            <option value="any">{{ "Any" if session['lang'] == 'en' else "Tout" }}</option>
+            {% for t in types %}
+                <option value="{{ t.type }}" {% if selected_type == t.type %}selected{% endif %}>
+                    {{ t.type }}
+                </option>
+            {% endfor %}
+        </select>
         
         <input type="submit" value="{{ 'Search' if session['lang'] == 'en' else 'Rechercher' }}">
     </form>
@@ -113,5 +119,4 @@
             });
         });
     </script>
-  
 {% endblock %}

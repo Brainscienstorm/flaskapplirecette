@@ -219,96 +219,134 @@ def ingredient_suggestions():
 
 
 
-# Ingredient Search functionality (updated for one-at-a-time navigation)
 @app.route('/ingredient_search', methods=['GET', 'POST'])
 def ingredient_search():
     conn = get_db_connection()
     
-    # (Optional) Get autocomplete suggestions – you can remove this if you prefer not to show a list.
+    # 1. Fetch distinct types for the dropdown
+    types = conn.execute('''
+        SELECT DISTINCT nom_type_{0} AS type
+        FROM Types
+        ORDER BY 1
+    '''.format(session['lang'])).fetchall()
+
+    # (Optional) for autocomplete, if you still need it in the template
     ingredients_autocomplete = conn.execute('''
         SELECT nom_ingredient_{0} as ingredient 
         FROM Ingredients
     '''.format(session['lang'])).fetchall()
 
     if request.method == 'POST':
-        # Process the submitted search form
+        # 2. Capture ingredients and type from the form
         user_ingredients = [i.strip() for i in request.form.get('ingredients', '').split(',')]
-        
-        # Find matching recipes
-        recipes = []
+        selected_type = request.form.get('type', 'any')
+
+        # 3. Query all recipes + their ingredients + their types
         all_recipes = conn.execute('''
-            SELECT r.id, r.plat_{0} as name, 
-                   GROUP_CONCAT(DISTINCT i.nom_ingredient_{0}) as ingredients
+            SELECT r.id,
+                   r.plat_{0} AS name,
+                   GROUP_CONCAT(DISTINCT i.nom_ingredient_{0}) AS ingredients,
+                   GROUP_CONCAT(DISTINCT t.nom_type_{0}) AS types
             FROM Recettes r
             JOIN RecetteIngredients ri ON r.id = ri.recette_id
-            JOIN Ingredients i ON ri.ingredient_id = i.id
+            JOIN Ingredients i        ON ri.ingredient_id = i.id
+            LEFT JOIN RecetteTypes rt ON r.id = rt.recette_id
+            LEFT JOIN Types t         ON rt.type_id = t.id
             GROUP BY r.id
         '''.format(session['lang'])).fetchall()
-        
+
+        recipes = []
         for recipe in all_recipes:
-            recipe_ingredients = set(recipe['ingredients'].split(','))
+            if not recipe['ingredients']:
+                continue
+            recipe_ingredients = {ing.strip() for ing in recipe['ingredients'].split(',')}
             user_ingredients_set = set(user_ingredients)
+
+            # Check if there's at least some overlap in ingredients
             matches = recipe_ingredients.intersection(user_ingredients_set)
             if matches:
-                recipes.append({
-                    'id': recipe['id'],
-                    'name': recipe['name'],
-                    'match_percent': len(matches) / len(recipe_ingredients) * 100
-                })
-        
-        # Sort by match percentage (highest first) and limit to a maximum of 10 suggestions
+                # If user chose a specific type, check if it's present
+                if selected_type != 'any':
+                    # 'types' might be None if no type is associated; handle that
+                    if recipe['types']:
+                        recipe_types = {t.strip() for t in recipe['types'].split(',')}
+                        if selected_type in recipe_types:
+                            # Calculate your match percentage or any other metric
+                            match_percent = len(matches) / len(recipe_ingredients) * 100
+                            recipes.append({
+                                'id': recipe['id'],
+                                'name': recipe['name'],
+                                'match_percent': match_percent
+                            })
+                    # else: no types at all, skip
+                else:
+                    # 'any' means we don't filter by type
+                    match_percent = len(matches) / len(recipe_ingredients) * 100
+                    recipes.append({
+                        'id': recipe['id'],
+                        'name': recipe['name'],
+                        'match_percent': match_percent
+                    })
+
+        # 4. Sort by match percentage (highest first) and limit to 10
         recipes.sort(key=lambda x: x['match_percent'], reverse=True)
         recipes = recipes[:10]
         
-        # Store the search results and initial index in the session
+        # 5. Store results & selections in session so we can navigate them
         session['ingredient_search_results'] = recipes
         session['ingredient_search_index'] = 0
         session['ingredient_search_terms'] = user_ingredients
+        session['selected_type'] = selected_type
         
         conn.close()
-        # Redirect to the GET route to display the first suggestion
         return redirect(url_for('ingredient_search'))
     
-    else:  # GET request
+    else:
+        # ----- GET request -----
+        selected_type = session.get('selected_type', 'any')
         if 'ingredient_search_results' in session:
             action = request.args.get('action')
             index = session.get('ingredient_search_index', 0)
             recipes = session['ingredient_search_results']
             
-            # Adjust the index based on the action parameter (next or previous)
+            # Handle next/prev
             if action == 'next' and index < len(recipes) - 1:
                 index += 1
             elif action == 'prev' and index > 0:
                 index -= 1
             session['ingredient_search_index'] = index
             
-            # Retrieve the current recipe details
+            # Retrieve current recipe details
             current_recipe = recipes[index]
             top_recipe = conn.execute(''' 
-                SELECT r.*, GROUP_CONCAT(DISTINCT t.nom_type_{0}) as types, 
-                    GROUP_CONCAT(DISTINCT c.nom_categorie_{0}) as categories,
-                    r.pays_origine_{0} as country_of_origin
+                SELECT r.*,
+                       GROUP_CONCAT(DISTINCT t.nom_type_{0})         as types, 
+                       GROUP_CONCAT(DISTINCT c.nom_categorie_{0})    as categories,
+                       r.pays_origine_{0}                            as country_of_origin
                 FROM Recettes r
-                LEFT JOIN RecetteTypes rt ON r.id = rt.recette_id
-                LEFT JOIN Types t ON rt.type_id = t.id
+                LEFT JOIN RecetteTypes rt     ON r.id = rt.recette_id
+                LEFT JOIN Types t             ON rt.type_id = t.id
                 LEFT JOIN RecetteCategories rc ON r.id = rc.recette_id
-                LEFT JOIN Categories c ON rc.categorie_id = c.id
+                LEFT JOIN Categories c        ON rc.categorie_id = c.id
                 WHERE r.id = ?
                 GROUP BY r.id
             '''.format(session['lang']), (current_recipe['id'],)).fetchone()
 
-            
             details_ingredients = conn.execute('''
-                SELECT i.nom_ingredient_{0} as ingredient, iq.quantity_{0} as quantity
+                SELECT i.nom_ingredient_{0} as ingredient,
+                       iq.quantity_{0}       as quantity
                 FROM Ingredients i
-                JOIN RecetteIngredients ri ON i.id = ri.ingredient_id
-                LEFT JOIN IngredientQuantities iq ON i.id = iq.ingredient_id AND ri.recette_id = iq.recette_id
+                JOIN RecetteIngredients ri
+                  ON i.id = ri.ingredient_id
+                LEFT JOIN IngredientQuantities iq
+                  ON i.id = iq.ingredient_id
+                 AND ri.recette_id = iq.recette_id
                 WHERE ri.recette_id = ?
             '''.format(session['lang']), (current_recipe['id'],)).fetchall()
 
-            
             instructions = conn.execute('''
-                SELECT step_number, instruction_{0} as instruction 
+                SELECT step_number,
+                       instruction_{0} as instruction 
                 FROM Instructions 
                 WHERE recette_id = ?
                 ORDER BY step_number
@@ -317,6 +355,8 @@ def ingredient_search():
             conn.close()
             return render_template('ingredient_search.html',
                                    ingredients_list=ingredients_autocomplete,
+                                   types=types,
+                                   selected_type=selected_type,
                                    top_recipe=top_recipe,
                                    ingredients_details=details_ingredients,
                                    instructions=instructions,
@@ -324,9 +364,15 @@ def ingredient_search():
                                    current_index=index,
                                    total=len(recipes))
         else:
+            # No search done yet
             conn.close()
-            # No search has been performed yet; show the search form.
-            return render_template('ingredient_search.html', ingredients_list=ingredients_autocomplete)
+            return render_template('ingredient_search.html',
+                                   ingredients_list=ingredients_autocomplete,
+                                   types=types,
+                                   selected_type='any')
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
